@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #poker {
+            width: 200px;
+            height: auto;
+            margin-top: 20px;
+        }
+
+        #espanola {
+            width: 96px; /* Ancho de una carta */
+            height: 130px; /* Altura de una carta */
+            background: url('images/cards/espanola/imagen.png') no-repeat;
+            margin: 20px auto;
+            background-size: 1152px 640px; /* Tamaño total de la hoja de sprites */
+        }
+
+        .hidden {
+            display: none;
+        }
+
+
+    </style>
+</head>
+<body>
+    <img id="poker" class="hidden" src="">
+
+    <div id="espanola" class="hidden"></div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+
+        // // Importar funciones de Firebase
+        // const { initializeApp } = firebase;
+        // const { getDatabase, ref, set, onValue } = firebase.database;
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+    
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvW35OmXCZEx-q8oJpI5_C-lq_hUoK01o",
+            authDomain: "trucomagia-83825.firebaseapp.com",
+            projectId: "trucomagia-83825",
+            storageBucket: "trucomagia-83825.appspot.com",
+            messagingSenderId: "436279248231",
+            appId: "1:436279248231:web:2cc0ee74924dc035751bc2",
+            measurementId: "G-R14YV492DC"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Función para obtener parámetros de la URL
+        function getParam(nombre) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.has(nombre) ? urlParams.get(nombre) : null;
+        }
+
+        // Obtener los parámetros de la URL
+        const numero = getParam('numero');
+        const palo = getParam('palo');
+        const esEspanola = getParam('esEspanola');
+
+        // Escuchar cambios en la carta seleccionada
+        const cardRef = ref(database, 'selectedCard');
+        onValue(cardRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                if (data.esEspanola == true) {
+                    let x = data.number * -96;
+                    let y = data.suit * -130;
+                    const cardImage = document.getElementById('espanola');
+                    cardImage.style.backgroundPosition = `${x}px ${y}px`;
+                    document.getElementById('espanola').style.display = "block";
+                    const pokerCard = document.getElementById('poker');
+                    pokerCard.classList.add('hidden');
+                }else{
+                    const rutaCarta = `images/cards/poker/${data.number}${data.suit}.svg`;
+                    const cartaElement = document.getElementById('poker');
+                    cartaElement.src = rutaCarta;
+                    cartaElement.classList.remove('hidden');
+
+
+                    const espanolaCard = document.getElementById('espanola');
+                    espanolaCard.classList.add('hidden');
+                }
+            }
+        });
+
+
+        // Función para mostrar la carta
+        function mostrarCarta(numero, palo) {
+            const rutaCarta = `images/cards/poker/${numero}${palo}.svg`;
+            const cartaElement = document.getElementById('poker');
+            cartaElement.src = rutaCarta;
+            cartaElement.classList.remove('hidden');
+        }
+
+        let suits = {
+            'o': 0,
+            'c': 1,
+            'e': 2,
+            'b': 3
+        };
+
+        if (numero && palo && esEspanola === 'true') {
+            var number = parseInt(numero) - 1;
+            set(cardRef, {
+                suit: suits[palo],
+                number: number,
+                esEspanola: true
+            });
+        }
+        
+        if (numero && palo && esEspanola === 'false') {
+            set(cardRef, {
+                suit: palo,
+                number: numero,
+                esEspanola: false
+            });
+            
+        } else {
+            const cartaElement = document.getElementById('poker');
+            cartaElement.classList.add('hidden');
+        }
+    </script>
+
+</body>
+</html>
